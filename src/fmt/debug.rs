@@ -1,7 +1,7 @@
 use core::fmt::{Debug, Formatter, Result};
 
 use super::BytesRef;
-use crate::{Bytes, BytesMut};
+use crate::{Bytes, rBytes, BytesMut};
 
 /// Alternative implementation of `std::fmt::Debug` for byte slice.
 ///
@@ -37,6 +37,13 @@ impl Debug for BytesRef<'_> {
 }
 
 impl Debug for Bytes {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        Debug::fmt(&BytesRef(&self.as_ref()), f)
+    }
+}
+
+
+impl Debug for rBytes {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         Debug::fmt(&BytesRef(&self.as_ref()), f)
     }

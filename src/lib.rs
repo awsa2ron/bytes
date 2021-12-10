@@ -84,10 +84,12 @@ pub mod buf;
 pub use crate::buf::{Buf, BufMut};
 
 mod bytes;
+mod rbytes;
 mod bytes_mut;
 mod fmt;
 mod loom;
 pub use crate::bytes::Bytes;
+pub use crate::rbytes::rBytes;
 pub use crate::bytes_mut::BytesMut;
 
 // Optional Serde support
