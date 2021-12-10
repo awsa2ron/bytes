@@ -96,10 +96,10 @@ pub struct rBytes {
     len: usize,
     // inlined "trait object"
     data: AtomicPtr<()>,
-    vtable: &'static rVtable,
+    vtable: &'static Vtable,
 }
 
-pub(crate) struct rVtable {
+pub(crate) struct Vtable {
     /// fn(data, ptr, len)
     pub clone: unsafe fn(&AtomicPtr<()>, *const u8, usize) -> rBytes,
     /// fn(data, ptr, len)
@@ -448,8 +448,8 @@ impl rBytes {
             // The Vec "promotable" vtables do not store the capacity,
             // so we cannot truncate while using this repr. We *have* to
             // promote using `split_off` so the capacity can be stored.
-            if self.vtable as *const rVtable == &PROMOTABLE_EVEN_VTABLE
-                || self.vtable as *const rVtable == &PROMOTABLE_ODD_VTABLE
+            if self.vtable as *const Vtable == &PROMOTABLE_EVEN_VTABLE
+                || self.vtable as *const Vtable == &PROMOTABLE_ODD_VTABLE
             {
                 drop(self.split_off(len));
             } else {
@@ -479,7 +479,7 @@ impl rBytes {
         ptr: *const u8,
         len: usize,
         data: AtomicPtr<()>,
-        vtable: &'static rVtable,
+        vtable: &'static Vtable,
     ) -> rBytes {
         rBytes {
             ptr,
@@ -512,7 +512,7 @@ impl rBytes {
     }
 }
 
-// rVtable must enforce this behavior
+// Vtable must enforce this behavior
 unsafe impl Send for rBytes {}
 unsafe impl Sync for rBytes {}
 
@@ -853,11 +853,11 @@ impl From<String> for rBytes {
     }
 }
 
-// ===== impl rVtable =====
+// ===== impl Vtable =====
 
-impl fmt::Debug for rVtable {
+impl fmt::Debug for Vtable {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("rVtable")
+        f.debug_struct("Vtable")
             .field("clone", &(self.clone as *const ()))
             .field("drop", &(self.drop as *const ()))
             .finish()
@@ -866,7 +866,7 @@ impl fmt::Debug for rVtable {
 
 // ===== impl StaticVtable =====
 
-const STATIC_VTABLE: rVtable = rVtable {
+const STATIC_VTABLE: Vtable = Vtable {
     clone: static_clone,
     drop: static_drop,
 };
@@ -882,12 +882,12 @@ unsafe fn static_drop(_: &mut AtomicPtr<()>, _: *const u8, _: usize) {
 
 // ===== impl PromotableVtable =====
 
-static PROMOTABLE_EVEN_VTABLE: rVtable = rVtable {
+static PROMOTABLE_EVEN_VTABLE: Vtable = Vtable {
     clone: promotable_even_clone,
     drop: promotable_even_drop,
 };
 
-static PROMOTABLE_ODD_VTABLE: rVtable = rVtable {
+static PROMOTABLE_ODD_VTABLE: Vtable = Vtable {
     clone: promotable_odd_clone,
     drop: promotable_odd_drop,
 };
@@ -966,7 +966,7 @@ struct Shared {
 // This flag is set when the LSB is 0.
 const _: [(); 0 - mem::align_of::<Shared>() % 2] = []; // Assert that the alignment of `Shared` is divisible by 2.
 
-static SHARED_VTABLE: rVtable = rVtable {
+static SHARED_VTABLE: Vtable = Vtable {
     clone: shared_clone,
     drop: shared_drop,
 };
