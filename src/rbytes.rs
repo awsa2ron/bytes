@@ -554,6 +554,12 @@ impl Buf for rBytes {
             self.dec_end(cnt);
         }
     }
+    fn get_u8(&mut self) -> u8 {
+        assert!(self.remaining() >= 1);
+        let ret = self.chunk()[self.len-1];
+        self.advance(1);
+        ret
+    }
 
     fn copy_to_bytes(&mut self, len: usize) -> crate::Bytes {
         // if len == self.remaining() {

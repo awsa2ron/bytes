@@ -20,5 +20,8 @@ mem.advance(1);
 println!("{:?}", mem);
 mem.advance(1);
 println!("{:?}", mem);
+println!("{:?}", mem.chunk());
+println!("{:?}", mem.remaining());
+println!("{:?}", mem.get_u8());
 
 }
